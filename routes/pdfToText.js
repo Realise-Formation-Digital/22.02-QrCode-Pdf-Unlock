@@ -2,8 +2,8 @@ const express = require('express');
 const pdfParse = require("pdf-parse");
 const router = express.Router();
 
-router.post('/', async function(req, res) {
-  try{
+router.post('/', async function (req, res) {
+  try {
     let pdfToTranslate = null
     let textFromPDFRaw = null
     let textFromPDF = null
@@ -17,8 +17,18 @@ router.post('/', async function(req, res) {
     const regExToExtractNumber = /([0-9]+)/g
     const regExToExtractAmount = /^.{2}([0-9]{10})/g
 
+    // const str = 'Rue du 31 Décembre de la managgia 12bis';
+    const strLen = arrayListFromText[26].length
+    const divid = strLen / 2
+    const result = arrayListFromText[26].slice(divid)
+    const regexNumber = /([0-9]+)/g
+    const regexSpaces = /([a-z]+)/gi
+    const matchNumbers = result.match(regexNumber)
+    const lastWord = arrayListFromText[26].split(' ').pop();
+    const lastWordOnly = lastWord.match(regexSpaces)
+
     console.log('PDF To Text')
-    if(!req.files) res.send({
+    if (!req.files) res.send({
       status: false,
       message: 'No file uploaded'
     });
@@ -32,26 +42,27 @@ router.post('/', async function(req, res) {
     addressAndNumber = arrayListFromText[26].split(' ')
     referenceNumberRaw = textFromPDF.match(regExToExtractReference)
     referenceNumberArray = referenceNumberRaw[0].match(regExToExtractNumber)
-    console.log('text', referenceNumberArray,  referenceNumberArray[0].substring(1, 1))
+    console.log('text', referenceNumberArray, referenceNumberArray[0].substring(1, 1))
     console.log('text', referenceNumberArray[0].substring(2, 12))
     const test = referenceNumberArray[0].substring(2, 12)
-    console.log('ciao', test.slice(-2), test.slice(0,10))
-    const amount = test.slice(0,10) + '.' + test.slice(-2)
+    console.log('ciao', test.slice(-2), test.slice(0, 10))
+    const amount = test.slice(0, 10) + '.' + test.slice(-2)
     console.log('ciao', amount)
     response = {
       name: arrayListFromText[17],
       infoSupp: arrayListFromText[19],
       npa: npaAndCity[0],
       city: npaAndCity[1],
-      address: arrayListFromText[26],
-      addressNumber: addressAndNumber[addressAndNumber.length - 1],
+      address: arrayListFromText[26,!matchNumbers, !lastWordOnly],
+      addressNumber: addressAndNumber[26, matchNumbers, lastWordOnly],
       referenceNumber: referenceNumberArray[1],
       totalAmount: parseFloat(test)
     }
+    console.log("addressNumber", addressAndNumber[26, matchNumbers, lastWordOnly])
 
     res.send(response)
 
-  }catch (e) {
+  } catch (e) {
     console.error('[API][pdfToText][pdfToText] An error has occurred when trying to translate pdf to text', e)
     res.status(500).send(e);
   }
