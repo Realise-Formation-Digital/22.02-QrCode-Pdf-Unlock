@@ -4,6 +4,7 @@ const pdftk = require('node-pdftk');
 
 router.post('/', async function(req, res) {
   try{
+    console.log('PDF Unlock')
     if(!req.files) res.send({
         status: false,
         message: 'No file uploaded'

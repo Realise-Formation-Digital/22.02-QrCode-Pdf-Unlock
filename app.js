@@ -7,6 +7,7 @@ const fileUpload = require('express-fileupload');
 const cors = require('cors');
 
 const pdfUnlock = require('./routes/pdfUnlock');
+const pdfToText = require('./routes/pdfToText');
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.use(fileUpload({
   },
 }));
 app.use('/pdfUnlock', pdfUnlock);
+app.use('/pdfToText', pdfToText);
 
 module.exports = app;
