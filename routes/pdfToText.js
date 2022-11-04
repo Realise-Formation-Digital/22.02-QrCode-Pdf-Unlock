@@ -10,14 +10,20 @@ router.post('/', async function(req, res) {
     let arrayListFromText = null
     let npaAndCity = null
     let response = null
-    let addressAndNumber = null
     let referenceNumberRaw = null
     let referenceNumberArray = null
+    let addressNumberComposed = null
+    let amountRaw = null
+    let amount = null
+    let halfString = null
+    let extractedAddressNumber = null
+    let lastWord = null
+    let lastWordOnly = null
     const regExToExtractReference = /([0-9]{13}>[0-9]{27}[+][ ][0-9]{9}>)/g
     const regExToExtractNumber = /([0-9]+)/g
-    const regExToExtractAmount = /^.{2}([0-9]{10})/g
+    const regexNumber = /([0-9]+)/g
+    const regexSpaces = /([a-z]+)/gi
 
-    console.log('PDF To Text')
     if(!req.files) res.send({
       status: false,
       message: 'No file uploaded'
@@ -29,24 +35,27 @@ router.post('/', async function(req, res) {
 
     arrayListFromText = textFromPDF.split('\n')
     npaAndCity = arrayListFromText[25].split(' ')
-    addressAndNumber = arrayListFromText[26].split(' ')
     referenceNumberRaw = textFromPDF.match(regExToExtractReference)
     referenceNumberArray = referenceNumberRaw[0].match(regExToExtractNumber)
-    console.log('text', referenceNumberArray,  referenceNumberArray[0].substring(1, 1))
-    console.log('text', referenceNumberArray[0].substring(2, 12))
-    const test = referenceNumberArray[0].substring(2, 12)
-    console.log('ciao', test.slice(-2), test.slice(0,10))
-    const amount = test.slice(0,10) + '.' + test.slice(-2)
-    console.log('ciao', amount)
+    amountRaw = referenceNumberArray[0].substring(2, 12)
+    amount = amountRaw.slice(0,8) + '.' + amountRaw.slice(-2)
+
+    halfString = arrayListFromText[26].slice(arrayListFromText[26].length / 2)
+    extractedAddressNumber = halfString.match(regexNumber).pop()
+    addressNumberComposed = extractedAddressNumber
+    lastWord = arrayListFromText[26].split(' ').pop();
+    lastWordOnly = lastWord.match(regexSpaces)
+    if (extractedAddressNumber !== lastWord) addressNumberComposed = extractedAddressNumber + ' ' + lastWordOnly
+
     response = {
       name: arrayListFromText[17],
       infoSupp: arrayListFromText[19],
       npa: npaAndCity[0],
       city: npaAndCity[1],
-      address: arrayListFromText[26],
-      addressNumber: addressAndNumber[addressAndNumber.length - 1],
+      address: arrayListFromText[26].slice(0, arrayListFromText[26].length  - extractedAddressNumber.length),
+      addressNumber: addressNumberComposed,
       referenceNumber: referenceNumberArray[1],
-      totalAmount: parseFloat(test)
+      totalAmount: parseFloat(amount)
     }
 
     res.send(response)
